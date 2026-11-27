@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Pay bill{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('maintenance.bill_detail', bill_id=bill.id) }}">← Back to bill</a>
+<h1>Pay {{ bill.month_label }} bill</h1>
+
+<div class="notice">This is a <strong>prototype payment</strong>. No real money moves; nothing you enter is sent anywhere.</div>
+
+<form class="panel narrow" method="post" id="pay-form">
+  <div class="amount-due">
+    <span>Amount due</span>
+    <strong>{{ bill.total_paise | rupees }}</strong>
+    {% if bill.has_late_fee %}<small>includes late fee</small>{% endif %}
+  </div>
+  {# Note: NO hidden "amount" field. The server reads the amount from the DB. #}
+
+  <fieldset>
+    <legend>Payment method</legend>
+    {% for m in methods %}
+      <label class="radio"><input type="radio" name="method" value="{{ m }}" {% if loop.first %}checked{% endif %}> {{ m }}</label>
+    {% endfor %}
+  </fieldset>
+
+  <label class="radio small muted">
+    <input type="checkbox" name="simulate_failure" value="1"> Simulate a failed payment (for demo)
+  </label>
+
+  <button class="btn primary big" type="submit" id="pay-btn">Pay {{ bill.total_paise | rupees }}</button>
+  <div class="processing" id="processing" hidden>
+    <span class="spinner"></span> Contacting bank (simulated)…
+  </div>
+</form>
+{% endblock %}

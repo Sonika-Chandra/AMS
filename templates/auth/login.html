@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Log in{% endblock %}
+{% block content %}
+<form class="panel narrow" method="post">
+  <h1>Log in</h1>
+  <label>Email <input type="email" name="email" required autofocus></label>
+  <label>Password <input type="password" name="password" required></label>
+  <button class="btn primary" type="submit">Log in</button>
+  <p class="muted small">Demo accounts (password: <code>password</code>): admin@ams.test, riya@ams.test, plumber@ams.test</p>
+</form>
+{% endblock %}

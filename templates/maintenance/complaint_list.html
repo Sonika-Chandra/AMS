@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% from "maintenance/_macros.html" import status_badge %}
+{% block title %}Helpdesk{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>
+    {% if current_user.role == 'resident' %}My complaints
+    {% elif current_user.role == 'staff' %}My assigned jobs
+    {% else %}All complaints{% endif %}
+  </h1>
+  {% if current_user.role == 'resident' %}
+    <a class="btn primary" href="{{ url_for('maintenance.complaint_new') }}">+ New complaint</a>
+  {% endif %}
+</div>
+
+{# Plain GET form: the filter becomes ?status=Pending in the URL, so it can be bookmarked #}
+<form class="filters" method="get">
+  <select name="status" class="auto-submit">
+    <option value="">All statuses</option>
+    {% for s in statuses %}
+      <option value="{{ s }}" {% if s == status_filter %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  {% if current_user.role == 'admin' %}
+    <label class="radio small"><input type="checkbox" name="escalated" value="1" class="auto-submit" {% if escalated_only %}checked{% endif %}> Escalated only</label>
+  {% endif %}
+  <noscript><button class="btn">Filter</button></noscript>
+</form>
+
+{% if complaints %}
+<table class="table">
+  <thead>
+    <tr><th>#</th><th>Title</th><th>Category</th>
+      {% if current_user.role != 'resident' %}<th>Flat</th>{% endif %}
+      <th>Assigned to</th><th>Status</th><th>Raised</th></tr>
+  </thead>
+  <tbody>
+  {% for c in complaints %}
+    <tr class="clickable" data-href="{{ url_for('maintenance.complaint_detail', complaint_id=c.id) }}">
+      <td>{{ c.id }}</td>
+      <td><a href="{{ url_for('maintenance.complaint_detail', complaint_id=c.id) }}">{{ c.title }}</a></td>
+      <td>{{ c.category.name }}</td>
+      {% if current_user.role != 'resident' %}<td>{{ c.flat.number }}</td>{% endif %}
+      <td>{{ c.assigned_staff.name if c.assigned_staff else '—' }}</td>
+      <td>{{ status_badge(c.status) }}{% if c.is_escalated %} <span class="badge badge-escalated">Escalated</span>{% endif %}</td>
+      <td>{{ c.created_at.strftime('%d %b %Y') }}</td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="empty">No complaints {% if status_filter %}with status “{{ status_filter }}”{% endif %} yet.</p>
+{% endif %}
+{% endblock %}

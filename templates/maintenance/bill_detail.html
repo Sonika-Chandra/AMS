@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "maintenance/_macros.html" import bill_badge %}
+{% block title %}Bill · {{ bill.month_label }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('maintenance.bill_list') }}">← Back to bills</a>
+<div class="page-head">
+  <h1>{{ bill.month_label }} · Flat {{ bill.flat.number }}</h1>
+  {{ bill_badge(bill) }}
+</div>
+
+<section class="panel">
+  <p>Due by <strong>{{ bill.due_date.strftime('%d %B %Y') }}</strong></p>
+  <table class="table">
+    <thead><tr><th>Item</th><th>Type</th><th class="num">Amount</th></tr></thead>
+    <tbody>
+      {% for item in bill.items %}
+        <tr class="{% if item.item_type == 'Late fee' %}late{% endif %}">
+          <td>{{ item.description }}</td><td>{{ item.item_type }}</td>
+          <td class="num">{{ item.amount_paise | rupees }}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    <tfoot><tr><th colspan="2">Total</th><th class="num">{{ bill.total_paise | rupees }}</th></tr></tfoot>
+  </table>
+
+  {% if not bill.is_paid and current_user.role == 'resident' %}
+    <a class="btn primary" href="{{ url_for('maintenance.bill_pay', bill_id=bill.id) }}">Pay {{ bill.total_paise | rupees }}</a>
+  {% endif %}
+</section>
+
+{% if bill.payments %}
+<section class="panel">
+  <h3>Payments</h3>
+  <ul>
+    {% for p in bill.payments %}
+      <li>{{ p.amount_paise | rupees }} via {{ p.method }} on {{ p.paid_at.strftime('%d %b %Y') }} —
+        <a href="{{ url_for('maintenance.receipt_view', receipt_id=p.receipt.id) }}">{{ p.receipt.receipt_number }}</a></li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endblock %}

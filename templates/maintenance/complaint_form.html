@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Raise a complaint{% endblock %}
+{% block content %}
+<h1>Raise a complaint</h1>
+<p class="muted">Flat {{ current_user.flat.number }}</p>
+
+{# enctype is REQUIRED for file uploads — without it request.files is empty #}
+<form class="panel" method="post" enctype="multipart/form-data" id="complaint-form">
+  <label>Category
+    <select name="category_id" required>
+      <option value="">— choose —</option>
+      {% for c in categories %}
+        <option value="{{ c.id }}" {% if form.get('category_id') == c.id|string %}selected{% endif %}>{{ c.name }}</option>
+      {% endfor %}
+    </select>
+  </label>
+
+  <label>Short title
+    <input name="title" minlength="5" maxlength="120" required
+           placeholder="e.g. Kitchen tap leaking" value="{{ form.get('title', '') }}">
+  </label>
+
+  <label>Describe the issue
+    <textarea name="description" rows="5" minlength="10" required
+              placeholder="Where is it, since when, how bad?">{{ form.get('description', '') }}</textarea>
+  </label>
+
+  <label>Photo (optional, max 5 MB — JPG, PNG or WEBP)
+    <input type="file" name="photo" id="photo-input" accept=".jpg,.jpeg,.png,.webp" data-max-mb="5">
+  </label>
+  <p class="field-error" id="photo-error" hidden></p>
+  <img id="photo-preview" class="photo-preview" alt="Selected photo preview" hidden>
+
+  <button class="btn primary" type="submit">Submit complaint</button>
+</form>
+{% endblock %}

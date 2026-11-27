@@ -1,0 +1,24 @@
+{# Reusable bits. Import with:  {% from "maintenance/_macros.html" import status_badge %} #}
+
+{% macro status_badge(status) -%}
+  {# "Working On It" -> CSS class "badge-working-on-it" #}
+  <span class="badge badge-{{ status | lower | replace(' ', '-') }}">{{ status }}</span>
+{%- endmacro %}
+
+{% macro bill_badge(bill) -%}
+  {% if bill.is_paid %}<span class="badge badge-paid">Paid</span>
+  {% elif bill.is_overdue %}<span class="badge badge-overdue">Overdue</span>
+  {% else %}<span class="badge badge-unpaid">Unpaid</span>{% endif %}
+{%- endmacro %}
+
+{# One timeline entry, used both for "Latest update" and inside the pop-up. #}
+{% macro timeline_item(u) %}
+  <li class="{{ 'is-escalation' if u.kind == 'escalation' }}">
+    <span class="when">{{ u.created_at.strftime('%d %b, %I:%M %p') }}</span>
+    <strong>{{ u.author.name }}</strong>: {{ u.message }}
+    {% if u.photo_filename %}
+      <a href="{{ url_for('maintenance.complaint_photo', filename=u.photo_filename) }}" target="_blank">
+        <img class="thumb" src="{{ url_for('maintenance.complaint_photo', filename=u.photo_filename) }}" alt="Update photo"></a>
+    {% endif %}
+  </li>
+{% endmacro %}
