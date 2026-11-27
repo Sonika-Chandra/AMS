@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}Payment history{% endblock %}
+{% block content %}
+<h1>{{ 'Payment history' if current_user.role == 'resident' else 'All payments' }}</h1>
+
+<div class="summary clear">
+  <span>{{ 'Total paid' if current_user.role == 'resident' else 'Total collected' }}</span>
+  <strong>{{ total | rupees }}</strong>
+  <small>{{ payments | length }} payment{{ '' if payments|length == 1 else 's' }}</small>
+</div>
+
+{% if payments %}
+<table class="table">
+  <thead><tr><th>Date</th>{% if current_user.role == 'admin' %}<th>Flat</th>{% endif %}
+    <th>Bill</th><th>Method</th><th>Transaction ref</th><th class="num">Amount</th><th>Receipt</th></tr></thead>
+  <tbody>
+  {% for p in payments %}
+    <tr>
+      <td>{{ p.paid_at.strftime('%d %b %Y') }}</td>
+      {% if current_user.role == 'admin' %}<td>{{ p.bill.flat.number }}</td>{% endif %}
+      <td>{{ p.bill.month_label }}</td>
+      <td>{{ p.method }}</td>
+      <td><code>{{ p.transaction_ref }}</code></td>
+      <td class="num">{{ p.amount_paise | rupees }}</td>
+      <td><a href="{{ url_for('maintenance.receipt_view', receipt_id=p.receipt.id) }}">{{ p.receipt.receipt_number }}</a></td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="empty">No payments yet.</p>
+{% endif %}
+{% endblock %}

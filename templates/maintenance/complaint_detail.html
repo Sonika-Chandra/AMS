@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% from "maintenance/_macros.html" import status_badge, timeline_item %}
+{% block title %}Complaint #{{ complaint.id }}{% endblock %}
+{% block content %}
+<a class="back" href="{{ url_for('maintenance.complaint_list') }}">← Back to list</a>
+
+<div class="page-head">
+  <h1>#{{ complaint.id }} · {{ complaint.title }}</h1>
+  <span>
+    {% if complaint.is_escalated %}<span class="badge badge-escalated">Escalated</span>{% endif %}
+    {{ status_badge(complaint.status) }}
+  </span>
+</div>
+
+{% if complaint.is_escalated %}
+  <div class="escalation-banner">
+    <strong>Resident reported a problem</strong> on {{ complaint.escalated_at.strftime('%d %b %Y, %I:%M %p') }}.
+    {% if current_user.role == 'admin' %}Re-assign the job (even to the same person) to mark it as followed up.{% endif %}
+  </div>
+{% endif %}
+
+{# Progress bar: Pending → Working On It → Fixed #}
+{% set steps = ['Pending', 'Working On It', 'Fixed'] %}
+{% set current = steps.index(complaint.status) %}
+<ol class="progress">
+  {% for s in steps %}
+    <li class="{% if loop.index0 <= current %}done{% endif %}">{{ s }}</li>
+  {% endfor %}
+</ol>
+
+<div class="two-col">
+  <section class="panel">
+    <dl class="facts">
+      <dt>Category</dt><dd>{{ complaint.category.name }}</dd>
+      <dt>Flat</dt><dd>{{ complaint.flat.number }}</dd>
+      <dt>Raised by</dt><dd>{{ complaint.raised_by.name }} on {{ complaint.created_at.strftime('%d %b %Y, %I:%M %p') }}</dd>
+      <dt>Assigned to</dt><dd>{{ complaint.assigned_staff.name if complaint.assigned_staff else 'Not assigned yet' }}</dd>
+      <dt>Last progress</dt><dd>{{ complaint.last_progress_at.strftime('%d %b %Y, %I:%M %p') }}</dd>
+      {% if complaint.resolved_at %}<dt>Fixed on</dt><dd>{{ complaint.resolved_at.strftime('%d %b %Y, %I:%M %p') }}</dd>{% endif %}
+    </dl>
+    <h3>Description</h3>
+    {# Jinja auto-escapes this, so a resident typing <script> can't inject code #}
+    <p class="pre">{{ complaint.description }}</p>
+
+    <div class="photo-pair">
+      {% if complaint.photo_filename %}
+        <figure>
+          <figcaption>Reported problem</figcaption>
+          <a href="{{ url_for('maintenance.complaint_photo', filename=complaint.photo_filename) }}" target="_blank">
+            <img class="photo" src="{{ url_for('maintenance.complaint_photo', filename=complaint.photo_filename) }}" alt="Complaint photo"></a>
+        </figure>
+      {% endif %}
+      {% set proof = complaint.fix_proof %}
+      {% if proof %}
+        <figure>
+          <figcaption>{{ 'Proof of fix' if complaint.status == 'Fixed' else 'Earlier fix attempt (reopened)' }}
+            · {{ proof.author.name }}, {{ proof.created_at.strftime('%d %b') }}</figcaption>
+          <a href="{{ url_for('maintenance.complaint_photo', filename=proof.photo_filename) }}" target="_blank">
+            <img class="photo" src="{{ url_for('maintenance.complaint_photo', filename=proof.photo_filename) }}" alt="Proof of fix photo"></a>
+        </figure>
+      {% endif %}
+    </div>
+  </section>
+
+  <aside>
+    {% if current_user.role == 'admin' %}
+    <form class="panel" method="post" action="{{ url_for('maintenance.complaint_assign', complaint_id=complaint.id) }}">
+      <h3>{{ 'Re-assign' if complaint.assigned_staff else 'Assign' }} staff</h3>
+      <select name="staff_id" required>
+        <option value="">— choose staff —</option>
+        {% for s in staff_members %}
+          <option value="{{ s.id }}">{{ s.name }}</option>
+        {% endfor %}
+      </select>
+      <input name="note" maxlength="255" placeholder="Note for staff (optional)">
+      <button class="btn">Assign</button>
+    </form>
+    {% endif %}
+
+    {% if next_statuses %}
+    {# enctype needed because this form can carry a photo #}
+    <form class="panel" method="post" enctype="multipart/form-data" id="status-form"
+          action="{{ url_for('maintenance.complaint_status', complaint_id=complaint.id) }}"
+          data-current="{{ complaint.status }}" data-proof-required="{{ '1' if current_user.role == 'staff' else '0' }}">
+      <h3>Post an update</h3>
+      <select name="status" required>
+        {% for s in next_statuses %}
+          <option value="{{ s }}">
+            {% if s == complaint.status %}{{ s }} (progress update){% else %}{{ s }}{% endif %}
+          </option>
+        {% endfor %}
+      </select>
+      <input name="note" maxlength="400" placeholder="What was done?">
+      <label class="small">Photo <span id="photo-hint" class="muted">(optional)</span>
+        <input type="file" name="photo" accept=".jpg,.jpeg,.png,.webp">
+      </label>
+      <button class="btn primary" data-confirm="Post this update?">Post update</button>
+    </form>
+    {% endif %}
+
+    {% if current_user.role == 'resident' %}
+      {% if escalate_ok %}
+      <form class="panel escalate" method="post" enctype="multipart/form-data"
+            action="{{ url_for('maintenance.complaint_escalate', complaint_id=complaint.id) }}">
+        <h3>{{ 'Not actually fixed?' if complaint.status == 'Fixed' else 'No progress?' }}</h3>
+        <p class="small muted">The admin will be alerted{% if complaint.status == 'Fixed' %} and the job reopened{% endif %}.</p>
+        <textarea name="reason" rows="3" minlength="10" required placeholder="What's still wrong?"></textarea>
+        <label class="small">Photo (optional)
+          <input type="file" name="photo" accept=".jpg,.jpeg,.png,.webp">
+        </label>
+        <button class="btn danger" data-confirm="Report this to the admin?">Report to admin</button>
+      </form>
+      {% elif escalate_why and complaint.status != 'Fixed' %}
+        <p class="panel small muted">{{ escalate_why }}</p>
+      {% endif %}
+    {% endif %}
+
+    {# Only the newest update is shown on the page; the full history opens in a pop-up. #}
+    {% set latest = complaint.updates[-1] if complaint.updates else None %}
+    <section class="panel">
+      <h3>Latest update</h3>
+      {% if latest %}
+        <ul class="timeline">{{ timeline_item(latest) }}</ul>
+      {% endif %}
+      <button type="button" class="btn" data-open-dialog="timeline-dialog">
+        View full timeline ({{ complaint.updates | length }})
+      </button>
+    </section>
+  </aside>
+</div>
+
+{# <dialog> is a built-in HTML pop-up. JS calls .showModal() to open it over the page. #}
+<dialog id="timeline-dialog" class="modal" aria-labelledby="timeline-title">
+  <div class="modal-head">
+    <h2 id="timeline-title">Timeline · #{{ complaint.id }}</h2>
+    <button type="button" class="btn small" data-close-dialog aria-label="Close">✕</button>
+  </div>
+  <ul class="timeline">
+    {% for u in complaint.updates %}{{ timeline_item(u) }}{% endfor %}
+  </ul>
+</dialog>
+{% endblock %}

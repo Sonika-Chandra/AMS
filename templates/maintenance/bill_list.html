@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "maintenance/_macros.html" import bill_badge %}
+{% block title %}Bills{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>{{ 'My bills' if current_user.role == 'resident' else 'All bills' }}</h1>
+  {% if current_user.role == 'admin' %}
+    <a class="btn primary" href="{{ url_for('maintenance.bill_generate') }}">+ Generate bills</a>
+  {% endif %}
+</div>
+
+<div class="summary {% if outstanding %}due{% else %}clear{% endif %}">
+  <span>Outstanding</span>
+  <strong>{{ outstanding | rupees }}</strong>
+  <small>{{ unpaid_count }} unpaid bill{{ '' if unpaid_count == 1 else 's' }}</small>
+</div>
+
+{% if current_user.role == 'admin' %}
+<form class="filters" method="get">
+  <input type="month" name="month" value="{{ filters.get('month', '') }}" class="auto-submit">
+  <select name="status" class="auto-submit">
+    <option value="">Paid &amp; unpaid</option>
+    {% for s in ['Unpaid', 'Paid'] %}
+      <option {% if filters.get('status') == s %}selected{% endif %}>{{ s }}</option>
+    {% endfor %}
+  </select>
+  <a href="{{ url_for('maintenance.bill_list') }}">Clear</a>
+</form>
+{% endif %}
+
+{% if bills %}
+<table class="table">
+  <thead><tr><th>Month</th>{% if current_user.role == 'admin' %}<th>Flat</th>{% endif %}
+    <th>Due date</th><th class="num">Amount</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for b in bills %}
+    <tr>
+      <td><a href="{{ url_for('maintenance.bill_detail', bill_id=b.id) }}">{{ b.month_label }}</a></td>
+      {% if current_user.role == 'admin' %}<td>{{ b.flat.number }}</td>{% endif %}
+      <td>{{ b.due_date.strftime('%d %b %Y') }}</td>
+      <td class="num">{{ b.total_paise | rupees }}{% if b.has_late_fee %} <small class="muted">(incl. late fee)</small>{% endif %}</td>
+      <td>{{ bill_badge(b) }}</td>
+      <td>
+        {% if current_user.role == 'resident' and not b.is_paid %}
+          <a class="btn small primary" href="{{ url_for('maintenance.bill_pay', bill_id=b.id) }}">Pay</a>
+        {% elif b.is_paid and b.payments and b.payments[0].receipt %}
+          <a class="btn small" href="{{ url_for('maintenance.receipt_view', receipt_id=b.payments[0].receipt.id) }}">Receipt</a>
+        {% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p class="empty">No bills found.</p>
+{% endif %}
+{% endblock %}
