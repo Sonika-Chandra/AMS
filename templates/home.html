@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h1>Welcome, {{ current_user.name }}</h1>
+<div class="card-grid">
+  {% if current_user.role == 'resident' %}
+    <a class="tile" href="{{ url_for('maintenance.complaint_new') }}"><strong>Raise a complaint</strong><span>Plumbing, electrical, carpentry…</span></a>
+    <a class="tile" href="{{ url_for('maintenance.complaint_list') }}"><strong>My complaints</strong><span>Track status</span></a>
+    <a class="tile" href="{{ url_for('maintenance.bill_list') }}"><strong>My bills</strong><span>Outstanding &amp; pay</span></a>
+    <a class="tile" href="{{ url_for('maintenance.payment_history') }}"><strong>Payment history</strong><span>Receipts</span></a>
+  {% elif current_user.role == 'staff' %}
+    <a class="tile" href="{{ url_for('maintenance.complaint_list') }}"><strong>My assigned jobs</strong><span>Update status</span></a>
+  {% elif current_user.role == 'admin' %}
+    <a class="tile" href="{{ url_for('maintenance.complaint_list', status='Pending') }}"><strong>Pending complaints</strong><span>Assign staff</span></a>
+    <a class="tile" href="{{ url_for('maintenance.bill_generate') }}"><strong>Generate bills</strong><span>Monthly maintenance &amp; water</span></a>
+    <a class="tile" href="{{ url_for('maintenance.bill_list', status='Unpaid') }}"><strong>Unpaid bills</strong><span>Who owes what</span></a>
+    <a class="tile" href="{{ url_for('maintenance.payment_history') }}"><strong>All payments</strong><span>Collections</span></a>
+  {% else %}
+    <p class="muted">The helpdesk and billing module isn't available for your role.</p>
+  {% endif %}
+</div>
+{% endblock %}
