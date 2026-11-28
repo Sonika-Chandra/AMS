@@ -1,0 +1,209 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Billing Management</title>
+    <link rel="stylesheet" href="../css/maintenance.css">
+</head>
+
+<body>
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            AM<span> / Maintenance</span>
+        </div>
+
+        <p class="nav-label">ADMIN PORTAL</p>
+
+        <nav aria-label="Main navigation">
+            <a href="dashboard.html">Overview</a>
+            <a href="complaints.html">Complaints</a>
+            <a href="staff.html">Maintenance staff</a>
+            <a href="announcements.html">Announcements</a>
+            <a href="billing.html" aria-current="page">
+                Billing &amp; Payments
+            </a>
+        </nav>
+
+    </aside>
+
+    <main>
+
+        <header>
+            <p class="eyebrow">APARTMENT MANAGEMENT SYSTEM</p>
+            <h1>Billing &amp; Payments</h1>
+            <p>Generate maintenance bills and monitor collections.</p>
+        </header>
+
+        <p id="adminBillingMessage" role="status"></p>
+
+        <!-- Billing Statistics -->
+
+        <section class="stats">
+
+            <article class="panel stat">
+                <p>Total billed amount</p>
+                <strong id="totalBilled">--</strong>
+            </article>
+
+            <article class="panel stat">
+                <p>Total collections</p>
+                <strong id="totalCollections">--</strong>
+            </article>
+
+            <article class="panel stat">
+                <p>Outstanding dues</p>
+                <strong id="totalOutstanding">--</strong>
+            </article>
+
+            <article class="panel stat">
+                <p>Unpaid flats</p>
+                <strong id="unpaidFlats">--</strong>
+            </article>
+
+        </section>
+
+        <!-- Generate Bill -->
+
+        <section class="panel">
+
+            <h2>Generate Maintenance Bill</h2>
+
+            <form id="generateBillForm">
+
+                <label for="flat_id">Select Flat</label>
+
+                <select id="flat_id" name="flat_id" required>
+                    <option value="">Select flat</option>
+                </select>
+
+                <label for="description">Description</label>
+
+                <input
+                    type="text"
+                    id="description"
+                    name="description"
+                    placeholder="Monthly maintenance charges"
+                    maxlength="100"
+                    required
+                >
+
+                <label for="bill_amount">Amount (INR)</label>
+
+                <input
+                    type="number"
+                    id="bill_amount"
+                    name="amount"
+                    min="0.01"
+                    max="99999999.99"
+                    step="0.01"
+                    required
+                >
+
+                <label for="due_date">Due Date</label>
+
+                <input
+                    type="date"
+                    id="due_date"
+                    name="due_date"
+                    required
+                >
+
+                <button type="submit" id="generateBillButton" disabled>
+                    Generate Bill
+                </button>
+
+            </form>
+
+        </section>
+
+        <!-- Maintenance Bills -->
+
+        <section class="panel">
+
+            <h2>Maintenance Bills</h2>
+
+            <div class="filters">
+
+                <label for="statusFilter">Filter by Status</label>
+
+                <select id="statusFilter">
+                    <option value="all">All Bills</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
+
+            </div>
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Bill ID</th>
+                            <th>Flat Number</th>
+                            <th>Description</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="allBillsTable">
+                        <tr>
+                            <td colspan="6">Loading bills...</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <!-- Payment Records -->
+
+        <section class="panel">
+
+            <h2>Payment Records</h2>
+
+            <div class="table-wrap">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Payment ID</th>
+                            <th>Bill ID</th>
+                            <th>Flat Number</th>
+                            <th>Amount Paid</th>
+                            <th>Payment Date</th>
+                            <th>Payment Method</th>
+                            <th>Transaction ID</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="allPaymentsTable">
+                        <tr>
+                            <td colspan="7">Loading payments...</td>
+                        </tr>
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <footer>Apartment Maintenance Management</footer>
+
+    </main>
+
+    <script src="js/billing.js"></script>
+
+</body>
+</html>

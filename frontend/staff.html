@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Maintenance staff | Apartment Maintenance</title>
+<link rel="stylesheet" href="../css/maintenance.css">
+</head>
+<body>
+<aside class="sidebar"><div class="brand">AM<span> / Maintenance</span></div><p class="nav-label">ADMIN PORTAL</p><nav aria-label="Main navigation"><a href="dashboard.html">Overview</a><a href="complaints.html">Complaints</a><a href="staff.html" aria-current="page">Maintenance staff</a><a href="announcements.html">Announcements</a><a href="billing.html">Billing &amp; Payments</a></nav></aside>
+<main><header><p class="eyebrow">APARTMENT MANAGEMENT SYSTEM</p><h1>Maintenance staff</h1><p>Manage workers and their availability.</p></header>
+<div class="demo">Frontend preview · Sample data only. Forms are not connected to the server.</div>
+<section class="panel"><h2>Staff directory</h2><div class="table-wrap"><table><thead><tr><th scope="col">ID</th><th scope="col">Name</th><th scope="col">Specialization</th><th scope="col">Availability</th></tr></thead><tbody><tr><td>1</td><td>Ravi</td><td>Plumbing</td><td><span class="status available">Available</span></td></tr><tr><td>2</td><td>Kumar</td><td>Electrical</td><td><span class="status available">Available</span></td></tr><tr><td>3</td><td>Manoj</td><td>Carpentry</td><td><span class="status unavailable">Unavailable</span></td></tr></tbody></table></div></section><section class="panel"><h2>Add worker</h2><form id="staff-form"><label for="name">Full name</label><input id="name" name="name" type="text" required><label for="phone">Phone number</label><input id="phone" name="phone" type="tel" required><label for="specialization">Specialization</label><select id="specialization" name="specialization"><option>Plumbing</option><option>Electrical</option><option>Carpentry</option><option>General maintenance</option></select><label for="availability">Availability</label><select id="availability" name="availability"><option>Available</option><option>Unavailable</option></select><button type="button" disabled>Add worker</button></form></section>
+<footer>Apartment Maintenance Management</footer></main>
+</body></html>
